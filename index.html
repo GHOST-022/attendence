@@ -16,6 +16,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -28,7 +29,7 @@
             brand: {
               bg: "#f8fafc",
               card: "#ffffff",
-              primary: "#0d9488", // Teal to match cashier light theme
+              primary: "#0d9488",
               secondary: "#14b8a6",
             },
           },
@@ -67,14 +68,11 @@
       flex-direction: column;
       -webkit-tap-highlight-color: transparent;
       overscroll-behavior-y: none;
-      /* يمنع السحب المتكرر للموبايل */
     }
 
-    /* Mobile Container Limits */
     .mobile-container {
       width: 100%;
       max-width: 480px;
-      /* لشكل الموبايل لو اتفتح على ديسكتوب */
       margin: 0 auto;
       min-height: 100vh;
       display: flex;
@@ -84,7 +82,6 @@
       box-shadow: 0 0 50px rgba(0, 0, 0, 0.05);
     }
 
-    /* Inputs */
     .app-input {
       width: 100%;
       background-color: #ffffff;
@@ -109,7 +106,6 @@
       font-weight: 400;
     }
 
-    /* Buttons */
     .btn-app {
       width: 100%;
       padding: 18px;
@@ -135,17 +131,6 @@
       box-shadow: 0 5px 15px -5px rgba(20, 184, 166, 0.4);
     }
 
-    .btn-danger {
-      background: linear-gradient(135deg, #ef4444, #f87171);
-      color: white;
-      box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.4);
-    }
-
-    .btn-danger:active {
-      transform: scale(0.97);
-    }
-
-    /* Big Fingerprint Button */
     .action-circle {
       width: 160px;
       height: 160px;
@@ -181,7 +166,6 @@
       box-shadow: 0 10px 20px -10px rgba(20, 184, 166, 0.3);
     }
 
-    /* Scanner UI */
     .scanner-wrapper {
       position: relative;
       width: 100%;
@@ -220,12 +204,8 @@
       z-index: 30;
     }
 
-    /* Hide HTML5-QRCode default UI elements to make it clean */
     #reader img,
-    #reader button {
-      display: none !important;
-    }
-
+    #reader button,
     #reader a {
       display: none !important;
     }
@@ -240,7 +220,6 @@
       font-family: Cairo;
     }
 
-    /* Toasts */
     #toast-container {
       position: fixed;
       top: env(safe-area-inset-top, 20px);
@@ -287,17 +266,9 @@
       display: none !important;
     }
 
-    /* Animations */
     @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .animate-slide-up {
@@ -311,8 +282,7 @@
 
     <div id="loginView" class="flex-1 flex flex-col justify-center px-8 pb-10">
       <div class="text-center mb-10 animate-slide-up">
-        <div
-          class="w-20 h-20 bg-white rounded-3xl shadow-soft flex items-center justify-center mx-auto mb-6 border border-slate-100">
+        <div class="w-20 h-20 bg-white rounded-3xl shadow-soft flex items-center justify-center mx-auto mb-6 border border-slate-100">
           <i class="fa-solid fa-staff-snake text-4xl text-teal-600"></i>
         </div>
         <h1 class="text-3xl font-black mb-2 text-slate-800 tracking-tight">بوابة الموظفين</h1>
@@ -353,8 +323,7 @@
               <p id="employeeName" class="text-lg font-black text-slate-800 leading-none">--</p>
             </div>
           </div>
-          <button id="logoutBtn"
-            class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+          <button id="logoutBtn" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
             <i class="fa-solid fa-power-off"></i>
           </button>
         </div>
@@ -373,8 +342,7 @@
               <i class="fa-solid fa-wifi text-2xl text-red-500"></i>
             </div>
             <h3 class="text-xl font-black text-slate-800 mb-2">أنت خارج التغطية</h3>
-            <p class="text-sm text-slate-500 mb-6 leading-relaxed">يجب الاتصال بشبكة (Wi-Fi) الخاصة بالفرع لتتمكن من
-              تسجيل الحضور بصلاحيات صحيحة.</p>
+            <p class="text-sm text-slate-500 mb-6 leading-relaxed">يجب الاتصال بشبكة (Wi-Fi) الخاصة بالفرع لتتمكن من التسجيل.</p>
             <button onclick="checkLocationAndStatus()" class="btn-app bg-slate-800 text-white shadow-lg">
               <i class="fa-solid fa-rotate-right"></i> تحديث الحالة
             </button>
@@ -383,8 +351,7 @@
 
         <div id="actionArea" class="hidden-view w-full flex flex-col items-center animate-slide-up">
 
-          <div id="statusBadge"
-            class="mb-8 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-100 flex items-center gap-2">
+          <div id="statusBadge" class="mb-8 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-100 flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
             <span id="statusText" class="text-sm font-bold text-slate-600">متصل بشبكة الفرع</span>
           </div>
@@ -396,22 +363,19 @@
               <div class="scanner-brackets"></div>
               <div class="scan-line animate-scan"></div>
             </div>
-            <button onclick="cancelScan()"
-              class="mt-6 mx-auto flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800">
+            <button onclick="cancelScan()" class="mt-6 mx-auto flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800">
               <i class="fa-solid fa-xmark"></i> إلغاء المسح
             </button>
           </div>
 
-          <button id="openScannerBtn" class="action-circle hidden-view" onclick="startQRScanner()">
+          <button id="openScannerBtn" class="action-circle hidden-view" onclick="startQRScanner('in')">
             <i class="fa-solid fa-qrcode text-5xl text-teal-600 mb-2"></i>
             <span class="text-sm font-black text-slate-700">تسجيل حضور</span>
           </button>
 
-          <button id="checkOutBtn"
-            class="action-circle hidden-view !border-red-50 !shadow-[0_20px_40px_-10px_rgba(239,68,68,0.2)]"
-            onclick="handleCheckOut()">
-            <i class="fa-solid fa-person-walking-arrow-right text-5xl text-red-500 mb-2"></i>
-            <span class="text-sm font-black text-slate-700">إنصراف</span>
+          <button id="checkOutBtn" class="action-circle hidden-view !border-red-50 !shadow-[0_20px_40px_-10px_rgba(239,68,68,0.2)]" onclick="startQRScanner('out')">
+            <i class="fa-solid fa-qrcode text-5xl text-red-500 mb-2"></i>
+            <span class="text-sm font-black text-slate-700">تسجيل انصراف</span>
           </button>
 
           <p id="attendanceNote" class="text-xs font-bold text-slate-400 mt-8 text-center px-4"></p>
@@ -440,6 +404,7 @@
     let currentEmployeeRecord = null;
     let currentBranchRecord = null;
     let activeLogId = null;
+    let currentScanAction = null; // لمعرفة هل الكاميرا مفتوحة للحضور أم للانصراف
 
     // ==========================================
     // 2. دوال مساعدة للواجهة
@@ -576,7 +541,6 @@
         note: document.getElementById("attendanceNote")
       };
 
-      // إخفاء الكل للتهيئة
       Object.values(elements).forEach(el => {
         if (el && el.classList) el.classList.add("hidden-view");
       });
@@ -608,7 +572,7 @@
         activeLogId = logs[0].id;
         elements.statusTxt.textContent = "حضورك مسجل حالياً";
         elements.checkoutBtn.classList.remove("hidden-view");
-        elements.note.textContent = "اضغط على الزر أعلاه لتسجيل الانصراف عند نهاية الوردية.";
+        elements.note.textContent = "قم بمسح كود الكاشير لتسجيل الانصراف بنهاية الوردية.";
         elements.note.classList.remove("hidden-view");
         return;
       }
@@ -620,13 +584,15 @@
     }
 
     // ==========================================
-    // 6. الكاميرا و الـ QR
+    // 6. الكاميرا و الـ QR (حضور + انصراف)
     // ==========================================
     let html5QrcodeScanner = null;
 
-    function startQRScanner() {
+    function startQRScanner(actionType) {
+      currentScanAction = actionType; // 'in' or 'out'
       document.getElementById("scannerArea").classList.remove("hidden-view");
       document.getElementById("openScannerBtn").classList.add("hidden-view");
+      document.getElementById("checkOutBtn").classList.add("hidden-view");
       document.getElementById("attendanceNote").classList.add("hidden-view");
 
       html5QrcodeScanner = new Html5Qrcode("reader");
@@ -645,8 +611,8 @@
     async function cancelScan() {
       if (html5QrcodeScanner) await html5QrcodeScanner.stop().catch(e => console.log(e));
       document.getElementById("scannerArea").classList.add("hidden-view");
-      document.getElementById("openScannerBtn").classList.remove("hidden-view");
-      document.getElementById("attendanceNote").classList.remove("hidden-view");
+      // إعادة تقييم الواجهة لإظهار الزر المناسب
+      await checkLocationAndStatus();
     }
 
     async function onQrCodeSuccess(decodedText) {
@@ -654,55 +620,49 @@
       document.getElementById("scannerArea").classList.add("hidden-view");
 
       try {
-        showToast("جاري توثيق الرمز...", "info");
+        showToast("جاري التوثيق وفك التشفير...", "info");
+
+        // 1. فك التشفير والتحقق من صحة الكود (أمان إضافي)
+        if (typeof CryptoJS === "undefined") throw new Error("مكتبة التشفير غير محملة.");
+        
+        const bytes = CryptoJS.AES.decrypt(decodedText, "UnitedSecretAttendance2026");
+        const rawData = bytes.toString(CryptoJS.enc.Utf8);
+        
+        if (!rawData || !rawData.includes(`BRANCH-${currentEmployeeRecord.branch_id}`)) {
+          throw new Error("الرمز غير صالح أو يتبع لفرع آخر.");
+        }
+
         const mobileIp = await fetchMobileIP();
 
-        const { error } = await supabaseClient.from("attendance_logs").insert([{
-          employee_id: currentEmployeeRecord.id,
-          branch_id: currentEmployeeRecord.branch_id,
-          check_in_ip: mobileIp
-        }]);
+        // 2. توجيه العملية بناءً على الزر اللي تم الضغط عليه
+        if (currentScanAction === 'in') {
+          const { error } = await supabaseClient.from("attendance_logs").insert([{
+            employee_id: currentEmployeeRecord.id,
+            branch_id: currentEmployeeRecord.branch_id,
+            check_in_ip: mobileIp
+          }]);
+          if (error) throw error;
+          showToast("تم تسجيل حضورك بنجاح!", "success");
 
-        if (error) throw error;
+        } else if (currentScanAction === 'out') {
+          if (!activeLogId) throw new Error("لا يوجد سجل حضور نشط لتسجيل الانصراف.");
+          
+          const { error } = await supabaseClient.from("attendance_logs")
+            .update({ check_out_time: new Date().toISOString(), check_out_ip: mobileIp })
+            .eq("id", activeLogId);
+          if (error) throw error;
+          showToast("تم الانصراف بنجاح. يوم سعيد!", "success");
+          activeLogId = null;
+        }
 
-        showToast("تم تسجيل حضورك بنجاح!", "success");
         await checkLocationAndStatus();
       } catch (error) {
-        showToast("الرمز غير صالح أو منتهي.", "error");
-        document.getElementById("openScannerBtn").classList.remove("hidden-view");
+        showToast(error.message || "حدث خطأ غير متوقع.", "error");
+        await checkLocationAndStatus();
       }
     }
 
-    function onQrCodeError(errorMessage) { } // صامت
-
-    // ==========================================
-    // 7. الانصراف والخروج
-    // ==========================================
-    async function handleCheckOut() {
-      if (!activeLogId) return;
-      try {
-        const btn = document.getElementById("checkOutBtn");
-        btn.style.pointerEvents = "none";
-        btn.style.opacity = "0.7";
-
-        const mobileIp = await fetchMobileIP();
-        const { error } = await supabaseClient.from("attendance_logs")
-          .update({ check_out_time: new Date().toISOString(), check_out_ip: mobileIp })
-          .eq("id", activeLogId);
-
-        if (error) throw error;
-
-        showToast("تم الانصراف بنجاح. يوم سعيد!", "success");
-        activeLogId = null;
-        await checkLocationAndStatus();
-      } catch (error) {
-        showToast("فشل تسجيل الانصراف.", "error");
-      } finally {
-        const btn = document.getElementById("checkOutBtn");
-        btn.style.pointerEvents = "auto";
-        btn.style.opacity = "1";
-      }
-    }
+    function onQrCodeError(errorMessage) { } // صامت لتجنب إزعاج المستخدم أثناء الـ Scanning
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       if (supabaseClient) await supabaseClient.auth.signOut();
@@ -714,7 +674,7 @@
     window.addEventListener("DOMContentLoaded", async () => {
       if (!supabaseClient) return;
       const { data: { session } } = await supabaseClient.auth.getSession();
-      if (session) await supabaseClient.auth.signOut(); // إجبار الدخول لضمان أمان الـ IP
+      if (session) await supabaseClient.auth.signOut(); 
     });
   </script>
 </body>
