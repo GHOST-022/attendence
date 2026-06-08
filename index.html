@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="theme-color" content="#f8fafc" />
-  <title>بوابة الموظفين - United Pharmacy</title>
+  <title>بوابة  - United Pharmacy</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -619,6 +619,11 @@
       document.getElementById("checkOutBtn").classList.add("hidden-view");
       document.getElementById("attendanceNote").classList.add("hidden-view");
 
+      // 📍 التنظيف المسبق: التأكد من تفريغ أي كاميرا معلقة قبل تشغيل كاميرا جديدة 📍
+      if (html5QrcodeScanner) {
+        try { html5QrcodeScanner.clear(); } catch (e) { }
+      }
+
       html5QrcodeScanner = new Html5Qrcode("reader");
       const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
 
@@ -635,65 +640,52 @@
     async function cancelScan() {
       document.getElementById("scannerArea").classList.add("hidden-view");
 
-      // بدلاً من إظهار زر محدد، نقوم بإعادة التحقق من الحالة ليتم عرض الزر الصحيح (حضور أو انصراف)
       await checkLocationAndStatus();
 
+      // 📍 الإغلاق السليم والتنظيف عند الإلغاء 📍
       if (html5QrcodeScanner) {
-        try {
-          await html5QrcodeScanner.stop();
-        } catch (error) {
-          console.log("الكاميرا متوقفة بالفعل", error);
-        }
-        try {
-          html5QrcodeScanner.clear();
-        } catch (error) { }
+        try { await html5QrcodeScanner.stop(); } catch (error) { }
+        try { html5QrcodeScanner.clear(); } catch (error) { }
       }
     }
 
     async function onQrCodeSuccess(decodedText) {
-      if (html5QrcodeScanner) await html5QrcodeScanner.stop();
+      // 📍 الإغلاق السليم والتنظيف عند نجاح المسح عشان الكاميرا تفتح في الانصراف 📍
+      if (html5QrcodeScanner) {
+        try { await html5QrcodeScanner.stop(); } catch (e) { }
+        try { html5QrcodeScanner.clear(); } catch (e) { }
+      }
+
       document.getElementById("scannerArea").classList.add("hidden-view");
 
       try {
         showToast("جاري توثيق وتحليل الرمز...", "info");
 
-        // ----------------------------------------------------
-        // 📍 1. فك التشفير والتحقق من هوية الرمز 📍
-        // ----------------------------------------------------
         if (typeof CryptoJS === "undefined") {
           throw new Error("مكتبة التشفير مفقودة، يرجى تحديث الصفحة.");
         }
 
         let decryptedData = "";
         try {
-          // فك التشفير باستخدام نفس المفتاح الموجود في الكاشير
           const bytes = CryptoJS.AES.decrypt(decodedText, "UnitedSecretAttendance2026");
           decryptedData = bytes.toString(CryptoJS.enc.Utf8);
         } catch (e) {
           throw new Error("رمز QR غير صالح أو لا يخص منظومة United Pharmacy.");
         }
 
-        // التأكد من أن النص يبدأ بالكلمة الدلالية الخاصة بنا
         if (!decryptedData || !decryptedData.startsWith("BRANCH-")) {
           throw new Error("رمز QR غير صالح أو من مصدر خارجي.");
         }
 
-        // ----------------------------------------------------
-        // 📍 2. استخراج البيانات والتحقق من الفرع والوقت 📍
-        // ----------------------------------------------------
-        // شكل النص المولد: BRANCH-1-DATE-2026-6-8-17-56-SEC-3
         const parts = decryptedData.split("-");
         const scannedBranchId = parts[1];
 
-        // التحقق من أن الكود يخص فرع الموظف
         if (String(scannedBranchId) !== String(currentEmployeeRecord.branch_id)) {
           throw new Error("عذراً، هذا الرمز يخص فرعاً آخر!");
         }
 
-        // التحقق من وقت الرمز (لمنع استخدام صورة قديمة للـ QR)
-        // نسمح بفرق توقيت أقصاه 3 دقائق بين هاتف الموظف وجهاز الكاشير
         const qrYear = parseInt(parts[3]);
-        const qrMonth = parseInt(parts[4]) - 1; // جافاسكريبت تبدأ الأشهر من 0
+        const qrMonth = parseInt(parts[4]) - 1;
         const qrDay = parseInt(parts[5]);
         const qrHour = parseInt(parts[6]);
         const qrMinute = parseInt(parts[7]);
@@ -706,9 +698,6 @@
           throw new Error("رمز QR منتهي الصلاحية. يرجى مسح الرمز الحالي من شاشة الكاشير مباشرة.");
         }
 
-        // ----------------------------------------------------
-        // 📍 3. تسجيل الحضور / الانصراف في قاعدة البيانات 📍
-        // ----------------------------------------------------
         const mobileIp = await fetchMobileIP();
 
         if (currentScanAction === 'in') {
