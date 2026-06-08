@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="theme-color" content="#f8fafc" />
-  <title>بوابة  - United Pharmacy</title>
+  <title>بوابة الموظفين - United Pharmacy</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -677,24 +677,31 @@
           throw new Error("رمز QR غير صالح أو من مصدر خارجي.");
         }
 
-        const parts = decryptedData.split("-");
-        const scannedBranchId = parts[1];
+        // 📍 التعديل الجذري هنا: استخدام Regex لقراءة الـ ID بالكامل وتجاهل المشاكل 📍
+        const match = decryptedData.match(/BRANCH-(.*?)-DATE-(\d+)-(\d+)-(\d+)-(\d+)-(\d+)/);
+
+        if (!match) {
+          throw new Error("تنسيق الرمز تالف أو غير مكتمل.");
+        }
+
+        const scannedBranchId = match[1]; // هذا سيجلب الـ ID كاملاً حتى لو كان داخله شرطات
 
         if (String(scannedBranchId) !== String(currentEmployeeRecord.branch_id)) {
           throw new Error("عذراً، هذا الرمز يخص فرعاً آخر!");
         }
 
-        const qrYear = parseInt(parts[3]);
-        const qrMonth = parseInt(parts[4]) - 1;
-        const qrDay = parseInt(parts[5]);
-        const qrHour = parseInt(parts[6]);
-        const qrMinute = parseInt(parts[7]);
+        const qrYear = parseInt(match[2]);
+        const qrMonth = parseInt(match[3]) - 1; // الأشهر تبدأ من 0
+        const qrDay = parseInt(match[4]);
+        const qrHour = parseInt(match[5]);
+        const qrMinute = parseInt(match[6]);
 
         const qrDate = new Date(qrYear, qrMonth, qrDay, qrHour, qrMinute);
         const now = new Date();
         const diffMinutes = Math.abs((now - qrDate) / 1000 / 60);
 
-        if (diffMinutes > 1) {
+        // جعلنا الصلاحية دقيقتين كحد أقصى تفادياً لاختلاف ثواني الساعات بين الكاشير وهاتف الموظف
+        if (diffMinutes > 2) {
           throw new Error("رمز QR منتهي الصلاحية. يرجى مسح الرمز الحالي من شاشة الكاشير مباشرة.");
         }
 
