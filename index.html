@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="theme-color" content="#f8fafc" />
-  <title>بوابة الموظفين - United Pharmacy</title>
+  <title>بوابة - United Pharmacy</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -577,16 +577,28 @@
 
       if (logs && logs.length > 0 && !logs[0].check_out_time) {
 
-        // 📍 هنا يكمن الحل: حساب الوقت المنقضي منذ تسجيل الحضور 📍
+        // حساب الوقت المنقضي منذ تسجيل الحضور
         const checkInTime = new Date(logs[0].check_in_time || logs[0].created_at);
         const now = new Date();
         const diffHours = (now - checkInTime) / (1000 * 60 * 60);
 
-        // إذا مرت أكثر من 14 ساعة (تستطيع تغيير الرقم حسب أقصى مدة لوردية لديك)
+        // اكتشاف التلاعب (مرور أكثر من 14 ساعة)
         if (diffHours > 14) {
-          // نعتبر الجلسة السابقة "مهجورة" أو محاولة تلاعب
           activeLogId = null;
-          // لن نقوم بإظهار زر الانصراف، وسيكمل الكود للأسفل ليظهر زر "تسجيل حضور" ليوم جديد
+
+          // 📍 1. إظهار إشعار منبثق (Toast) تحذيري باللون الأحمر 📍
+          showToast("تنبيه: تم رصد تلاعب في ورديتك السابقة لعدم تسجيل الانصراف!", "error");
+
+          // إظهار زر "تسجيل حضور" ليوم جديد
+          elements.statusTxt.textContent = "متصل وجاهز للتسجيل";
+          elements.scanBtn.classList.remove("hidden-view");
+
+          // 📍 2. تغيير النص الإرشادي لرسالة تحذيرية دائمة باللون الأحمر 📍
+          elements.note.innerHTML = '<span class="text-red-500 font-extrabold"><i class="fa-solid fa-triangle-exclamation"></i> تم تسجيل ورديتك السابقة "تلاعب" لعدم الانصراف. نرجو الالتزام مستقبلاً.<br>مسح الرمز الآن سيسجل حضوراً جديداً.</span>';
+          elements.note.classList.remove("hidden-view");
+
+          return; // نخرج هنا لمنع مسح الرسالة التحذيرية
+
         } else {
           // وردية طبيعية، نظهر له زر الانصراف
           activeLogId = logs[0].id;
@@ -598,6 +610,7 @@
         }
       }
 
+      // الكود الافتراضي (للموظف الملتزم أو من ليس لديه سجلات معلقة)
       elements.statusTxt.textContent = "متصل وجاهز للتسجيل";
       elements.scanBtn.classList.remove("hidden-view");
       elements.note.textContent = "اضغط للبدء، ثم قم بتوجيه الكاميرا نحو شاشة الكاشير لمسح الرمز";
