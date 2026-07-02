@@ -518,7 +518,7 @@
             <button
               id="checkOutBtn"
               class="hidden-view group relative"
-              onclick="handleCheckOut()"
+              onclick="startScannerForCheckout()"
             >
               <div
                 class="absolute -inset-2 bg-gradient-to-r from-rose-400 to-red-500 rounded-full blur-xl opacity-40 group-hover:opacity-60 transition duration-500 animate-pulseSoft"
@@ -835,33 +835,29 @@
       }
 
       async function cancelScan() {
-        // 1. إخفاء واجهة الكاميرا وإظهار الأزرار الأساسية فوراً (استجابة لحظية للمستخدم)
         document.getElementById("scannerArea").classList.add("hidden-view");
-        document
-          .getElementById("openScannerBtn")
-          .classList.remove("hidden-view");
         document
           .getElementById("attendanceNote")
           .classList.remove("hidden-view");
 
-        // 2. إيقاف الكاميرا في الخلفية بأمان تام
+        // إرجاع الزر الصحيح بناءً على حالة المسح
+        if (isScanForCheckout) {
+          document
+            .getElementById("checkOutBtn")
+            .classList.remove("hidden-view");
+        } else {
+          document
+            .getElementById("openScannerBtn")
+            .classList.remove("hidden-view");
+        }
+
         if (html5QrcodeScanner) {
           try {
-            // محاولة إيقاف بث الكاميرا
             await html5QrcodeScanner.stop();
-          } catch (error) {
-            console.log(
-              "ملاحظة: الكاميرا لم تكن تعمل بالكامل أو تم إيقافها مسبقاً",
-              error,
-            );
-          }
-
+          } catch (error) {}
           try {
-            // مسح إطار الكاميرا من واجهة المستخدم
             html5QrcodeScanner.clear();
-          } catch (error) {
-            // يتم التجاهل في حال عدم وجود إطار متبقي
-          }
+          } catch (error) {}
         }
       }
 
@@ -936,9 +932,16 @@
           await checkLocationAndStatus();
         } catch (error) {
           showToast(error.message || "حدث خطأ أثناء قراءة الرمز.", "error");
-          document
-            .getElementById("openScannerBtn")
-            .classList.remove("hidden-view");
+          // إرجاع الزر الصحيح في حالة حدوث خطأ
+          if (isScanForCheckout) {
+            document
+              .getElementById("checkOutBtn")
+              .classList.remove("hidden-view");
+          } else {
+            document
+              .getElementById("openScannerBtn")
+              .classList.remove("hidden-view");
+          }
         }
       }
 
