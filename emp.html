@@ -942,38 +942,6 @@
 
       function onQrCodeError(errorMessage) {} // صامت
 
-      // ==========================================
-      // 7. الانصراف والخروج
-      // ==========================================
-      // async function handleCheckOut() {
-      //   if (!activeLogId) return;
-      //   try {
-      //     const btn = document.getElementById("checkOutBtn");
-      //     btn.style.pointerEvents = "none";
-      //     btn.style.opacity = "0.7";
-
-      //     const mobileIp = await fetchMobileIP();
-      //     const { error } = await supabaseClient
-      //       .from("attendance_logs")
-      //       .update({
-      //         check_out_time: new Date().toISOString(),
-      //         check_out_ip: mobileIp,
-      //       })
-      //       .eq("id", activeLogId);
-
-      //     if (error) throw error;
-
-      //     showToast("تم الانصراف بنجاح. يوم سعيد!", "success");
-      //     activeLogId = null;
-      //     await checkLocationAndStatus();
-      //   } catch (error) {
-      //     showToast("فشل تسجيل الانصراف.", "error");
-      //   } finally {
-      //     const btn = document.getElementById("checkOutBtn");
-      //     btn.style.pointerEvents = "auto";
-      //     btn.style.opacity = "1";
-      //   }
-      // }
 
       document
         .getElementById("logoutBtn")
