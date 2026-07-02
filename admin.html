@@ -2193,23 +2193,25 @@
         );
       }
 
-      async function resetCashierDevice(branchId) {
-        if (
-          !confirm(
-            "تحذير: هل أنت متأكد من إعادة تعيين بصمة الكاشير؟ سيتم تسجيل خروج الكاشير الحالي.",
-          )
-        )
-          return;
-        try {
-          await supabaseClient
-            .from("branches")
-            .update({ cashier_fingerprint: null, active_ip: null })
-            .eq("id", branchId);
-          showToast("تم إعادة تعيين جهاز الكاشير", "success");
-          loadCashiers();
-        } catch (error) {
-          showToast("حدث خطأ", "error");
-        }
+      function resetCashierDevice(branchId) {
+        showConfirmModal(
+          "إعادة تعيين جهاز الكاشير",
+          "هل أنت متأكد من مسح البصمة الرقمية لجهاز الكاشير الحالي؟ سيتم تسجيل خروجه فوراً وسيحتاج لتسجيل الدخول من جديد لتوثيق جهازه.",
+          async () => {
+            try {
+              showToast("جاري إعادة التعيين...", "info");
+              await supabaseClient
+                .from("branches")
+                .update({ cashier_fingerprint: null, active_ip: null })
+                .eq("id", branchId);
+              showToast("تم إعادة تعيين جهاز الكاشير بنجاح", "success");
+              loadCashiers();
+            } catch (error) {
+              showToast("حدث خطأ أثناء محاولة التعيين", "error");
+            }
+          },
+          "warning", // هيعرض النافذة باللون البرتقالي التحذيري الأنيق
+        );
       }
 
       function openBranchModal(empId, empName, currentBranchId) {
