@@ -577,6 +577,19 @@
       let currentBranchRecord = null;
       let activeLogId = null;
 
+      // المتغير والدوال الجديدة الخاصة بتحديد نوع المسح (حضور أو انصراف)
+      let isScanForCheckout = false;
+
+      function startScannerForCheckIn() {
+        isScanForCheckout = false;
+        startQRScanner();
+      }
+
+      function startScannerForCheckout() {
+        isScanForCheckout = true;
+        startQRScanner();
+      }
+
       // ==========================================
       // 2. دوال مساعدة للواجهة
       // ==========================================
